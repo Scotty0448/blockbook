@@ -132,6 +132,7 @@ func (s *PublicServer) ConnectFullPublicInterface() {
 	serveMux.Handle(path+"test-websocket.html", http.FileServer(http.Dir("./static/")))
 	if s.internalExplorer {
 		// internal explorer handlers
+		serveMux.HandleFunc(path+"status", s.htmlTemplateHandler(s.explorerStatus))
 		serveMux.HandleFunc(path+"tx/", s.htmlTemplateHandler(s.explorerTx))
 		serveMux.HandleFunc(path+"address/", s.htmlTemplateHandler(s.explorerAddress))
 		serveMux.HandleFunc(path+"xpub/", s.htmlTemplateHandler(s.explorerXpub))
@@ -322,6 +323,7 @@ func (s *PublicServer) newTemplateData() *TemplateData {
 		ChainType:        s.chainParser.GetChainType(),
 		InternalExplorer: s.internalExplorer && !s.is.InitialSync,
 		TOSLink:          api.Text.TOSLink,
+		IsIndex:          false,
 	}
 }
 
@@ -394,6 +396,7 @@ const (
 	errorTpl
 	errorInternalTpl
 	indexTpl
+	statusTpl
 	txTpl
 	addressTpl
 	xpubTpl
@@ -429,6 +432,7 @@ type TemplateData struct {
 	SendTxHex            string
 	Status               string
 	NonZeroBalanceTokens bool
+	IsIndex              bool
 }
 
 func (s *PublicServer) parseTemplates() []*template.Template {
@@ -483,6 +487,7 @@ func (s *PublicServer) parseTemplates() []*template.Template {
 	t[errorTpl] = createTemplate("./static/templates/error.html", "./static/templates/base.html")
 	t[errorInternalTpl] = createTemplate("./static/templates/error.html", "./static/templates/base.html")
 	t[indexTpl] = createTemplate("./static/templates/index.html", "./static/templates/base.html")
+	t[statusTpl] = createTemplate("./static/templates/status.html", "./static/templates/base.html")
 	t[blocksTpl] = createTemplate("./static/templates/blocks.html", "./static/templates/paging.html", "./static/templates/base.html")
 	t[sendTransactionTpl] = createTemplate("./static/templates/sendtx.html", "./static/templates/base.html")
 	if s.chainParser.GetChainType() == bchain.ChainEthereumType {
@@ -762,15 +767,38 @@ func (s *PublicServer) explorerBlock(w http.ResponseWriter, r *http.Request) (tp
 
 func (s *PublicServer) explorerIndex(w http.ResponseWriter, r *http.Request) (tpl, *TemplateData, error) {
 	var si *api.SystemInfo
+	var blocks *api.Blocks
+	var mempoolTxids *api.MempoolTxids
 	var err error
 	s.metrics.ExplorerViews.With(common.Labels{"action": "index"}).Inc()
 	si, err = s.api.GetSystemInfo(false)
+	blocks, err = s.api.GetBlocks(1, 10)
+	if err != nil {
+		return errorTpl, nil, err
+	}
+	mempoolTxids, err = s.api.GetMempool(1, 500)
 	if err != nil {
 		return errorTpl, nil, err
 	}
 	data := s.newTemplateData()
+	data.IsIndex = true
 	data.Info = si
+	data.Blocks = blocks
+	data.MempoolTxids = mempoolTxids
 	return indexTpl, data, nil
+}
+
+func (s *PublicServer) explorerStatus(w http.ResponseWriter, r *http.Request) (tpl, *TemplateData, error) {
+ 	var si *api.SystemInfo
+ 	var err error
+ 	s.metrics.ExplorerViews.With(common.Labels{"action": "status"}).Inc()
+ 	si, err = s.api.GetSystemInfo(false)
+ 	if err != nil {
+ 		return errorTpl, nil, err
+ 	}
+ 	data := s.newTemplateData()
+ 	data.Info = si
+ 	return statusTpl, data, nil
 }
 
 func (s *PublicServer) explorerSearch(w http.ResponseWriter, r *http.Request) (tpl, *TemplateData, error) {
