@@ -1,8 +1,8 @@
 {
   "coin": {
-    "name": "Flo",
+    "name": "FLO",
     "shortcut": "FLO",
-    "label": "Flo",
+    "label": "FLO",
     "alias": "flo"
   },
   "ports": {
@@ -49,12 +49,16 @@
     "internal_binding_template": ":{{.Ports.BlockbookInternal}}",
     "public_binding_template": ":{{.Ports.BlockbookPublic}}",
     "explorer_url": "",
-    "additional_params": "-dbcache=1073741824",
+    "additional_params": "",
     "block_chain": {
       "parse": false,
       "mempool_workers": 8,
       "mempool_sub_workers": 2,
       "block_addresses_to_keep": 300,
+      "xpub_magic": 20201579,
+      "xpub_magic_segwit_p2sh": 28471030,
+      "xpub_magic_segwit_native": 78792518,
+      "slip44": 216,
       "additional_params": {}
     }
   },
