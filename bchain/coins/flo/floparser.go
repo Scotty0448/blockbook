@@ -30,7 +30,7 @@ func init() {
 	TestNetParams = chaincfg.TestNet3Params
 	TestNetParams.Net = TestnetMagic
 	TestNetParams.PubKeyHashAddrID = []byte{115}
-	TestNetParams.ScriptHashAddrID = []byte{198}
+	TestNetParams.ScriptHashAddrID = []byte{58}
 	TestNetParams.Bech32HRPSegwit = "tflo"
 }
 
@@ -48,8 +48,8 @@ func NewFloParser(params *chaincfg.Params, c *btc.Configuration) *FloParser {
 	}
 }
 
-// GetChainParams contains network parameters for the main Flo network,
-// and the test Flo network
+// GetChainParams contains network parameters for the main FLO network,
+// and the test FLO network
 func GetChainParams(chain string) *chaincfg.Params {
 	if !chaincfg.IsRegistered(&MainNetParams) {
 		err := chaincfg.Register(&MainNetParams)
