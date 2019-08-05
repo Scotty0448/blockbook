@@ -124,7 +124,18 @@ func (w *Worker) GetTransaction(txid string, spendingTxs bool, specificJSON bool
 		}
 		return nil, NewAPIError(fmt.Sprintf("Transaction '%v' not found (%v)", txid, err), true)
 	}
-	return w.GetTransactionFromBchainTx(bchainTx, height, spendingTxs, specificJSON)
+	return w.GetTransactionFromBchainTx(bchainTx, height, spendingTxs, true) //specificJSON
+}
+
+func getFloData(txRawJSON json.RawMessage) string {
+ 	var txJSON map[string]interface{}
+ 	json.Unmarshal(txRawJSON, &txJSON)
+ 	floData, ok := txJSON["floData"].(string)
+ 	if ok {
+ 		return floData
+ 	} else {
+ 		return ""
+ 	}
 }
 
 // GetTransactionFromBchainTx reads transaction data from txid
@@ -309,6 +320,7 @@ func (w *Worker) GetTransactionFromBchainTx(bchainTx *bchain.Tx, height int, spe
 		CoinSpecificData: sj,
 		TokenTransfers:   tokens,
 		EthereumSpecific: ethSpecific,
+		FloData:          getFloData(sj),
 	}
 	return r, nil
 }
