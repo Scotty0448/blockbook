@@ -68,6 +68,7 @@ type TxV1 struct {
 	Fees          string   `json:"fees"`
 	FeesSat       big.Int  `json:"-"`
 	Hex           string   `json:"hex"`
+	FloData       string   `json:"floData"`
 }
 
 // AddressV1 is used for legacy api v1
@@ -164,6 +165,7 @@ func (w *Worker) TxToV1(tx *Tx) *TxV1 {
 		Version:       tx.Version,
 		Vin:           vinV1,
 		Vout:          voutV1,
+		FloData:       tx.FloData,
 	}
 }
 

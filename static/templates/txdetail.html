@@ -89,5 +89,20 @@
             <span class="txvalues txvalues-primary">{{formatAmount $tx.ValueOutSat}} {{$cs}}</span>
         </div>
     </div>
+    {{- if $tx.FloData -}}
+        <div class="row line-top" style="margin-top:20px">
+            <div class="col-12">
+                <strong>floData: </strong>
+                <span class="text-muted flodata" style="word-break: break-all">
+                  {{- if containsNewLines $tx.FloData -}}
+                    <br>
+                    {{- range $line := splitOnNewLines $tx.FloData -}}{{$line}}<br>{{- end -}}
+                  {{- else -}}
+                    {{$tx.FloData}}
+                  {{- end -}}
+                </span>
+            </div>
+        </div>
+     {{- end -}}
 </div>
 {{end}}

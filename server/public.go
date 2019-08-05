@@ -444,6 +444,8 @@ func (s *PublicServer) parseTemplates() []*template.Template {
 		"setTxToTemplateData":      setTxToTemplateData,
 		"isOwnAddress":             isOwnAddress,
 		"isOwnAddresses":           isOwnAddresses,
+		"containsNewLines":         containsNewLines,
+		"splitOnNewLines":          splitOnNewLines,
 	}
 	var createTemplate func(filenames ...string) *template.Template
 	if s.debug {
@@ -555,6 +557,14 @@ func isOwnAddresses(td *TemplateData, addresses []string) bool {
 		return isOwnAddress(td, addresses[0])
 	}
 	return false
+}
+
+func containsNewLines(s string) bool {
+	return strings.Contains(s, "\n")
+}
+
+func splitOnNewLines(s string) []string {
+  return strings.Split(s, "\n")
 }
 
 func (s *PublicServer) explorerTx(w http.ResponseWriter, r *http.Request) (tpl, *TemplateData, error) {
