@@ -5,6 +5,7 @@ import (
 	"github.com/martinboehm/btcutil/chaincfg"
 	"github.com/trezor/blockbook/bchain"
 	"github.com/trezor/blockbook/bchain/coins/btc"
+	"github.com/martinboehm/btcutil/txscript"
 )
 
 // magic numbers
@@ -39,10 +40,12 @@ type RavencoinParser struct {
 
 // NewRavencoinParser returns new RavencoinParser instance
 func NewRavencoinParser(params *chaincfg.Params, c *btc.Configuration) *RavencoinParser {
-	return &RavencoinParser{
+	parser := &RavencoinParser{
 		BitcoinParser: btc.NewBitcoinParser(params, c),
 		baseparser:    &bchain.BaseParser{},
 	}
+	parser.OutputScriptToAddressesFunc = parser.outputScriptToAddresses
+	return parser
 }
 
 // GetChainParams contains network parameters
@@ -72,4 +75,26 @@ func (p *RavencoinParser) PackTx(tx *bchain.Tx, height uint32, blockTime int64) 
 // UnpackTx unpacks transaction from protobuf byte array
 func (p *RavencoinParser) UnpackTx(buf []byte) (*bchain.Tx, uint32, error) {
 	return p.baseparser.UnpackTx(buf)
+}
+
+// outputScriptToAddresses converts ScriptPubKey to addresses with a flag that the addresses are searchable
+func (p *RavencoinParser) outputScriptToAddresses(script []byte) ([]string, bool, error) {
+	sc, addresses, _, err := txscript.ExtractPkScriptAddrs(script, p.Params)
+	if err != nil {
+		return nil, false, err
+	}
+	rv := make([]string, len(addresses))
+	for i, a := range addresses {
+		rv[i] = a.EncodeAddress()
+	}
+	var s bool
+	if sc == txscript.PubKeyHashTy || sc == txscript.WitnessV0PubKeyHashTy || sc == txscript.ScriptHashTy || sc == txscript.WitnessV0ScriptHashTy || sc == txscript.PubKeyHashWithAssetTy {
+		s = true
+	} else if len(rv) == 0 {
+		or := p.TryParseOPReturn(script)
+		if or != "" {
+			rv = []string{or}
+		}
+	}
+	return rv, s, nil
 }

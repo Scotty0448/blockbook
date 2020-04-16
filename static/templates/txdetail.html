@@ -48,26 +48,48 @@
                 <table class="table data-table">
                     <tbody>
                         {{- range $vout := $tx.Vout -}}
-                        <tr{{if isOwnAddresses $data $vout.Addresses}} class="tx-own"{{end}}>
-                            <td>
-                                {{- range $a := $vout.Addresses -}}
-                                <span class="ellipsis tx-addr">
-                                    {{- if and (ne $a $addr) $vout.IsAddress}}<a href="/address/{{$a}}">{{$a}}</a>{{else}}{{$a}}{{- end -}}
-                                </span>
-                                {{- else -}}
-                                <span class="tx-addr">Unparsed address</span>
-                                {{- end -}}
-                                <span class="tx-amt">
-                                    {{formatAmount $vout.ValueSat}} {{$cs}} {{if $vout.Spent}}<a class="text-danger" href="{{if $vout.SpentTxID}}/tx/{{$vout.SpentTxID}}{{else}}/spending/{{$tx.Txid}}/{{$vout.N}}{{end}}" title="Spent">➡</a>{{else -}}
-                                    <span class="text-success" title="Unspent"> <b>×</b></span>
-                                    {{- end -}}
-                                </span>
-                            </td>
-                        </tr>
+                            {{- if isAssetScript $vout.Hex}}
+                                {{- $asset := getAssetData $vout.Hex}}
+                                <tr{{if isOwnAddresses $data $vout.Addresses}} class="tx-own"{{end}}>
+                                    <td style="position:relative">
+                                        {{- range $a := $vout.Addresses -}}
+                                        <span class="ellipsis tx-addr" style="position:absolute; left:5;">
+                                            {{- if and (ne $a $addr) $vout.IsAddress}}<a href="/address/{{$a}}">{{$a}}</a>{{else}}{{$a}}{{- end -}}
+                                            <br><span style="color:#6c757d">{{$asset.TxType}} Asset</span>
+                                        </span>
+                                        {{- else -}}
+                                        <span class="tx-addr">Unparsed address</span>
+                                        {{- end -}}
+                                        <span class="tx-amt" style="text-align:right">
+                                            {{formatAmount $vout.ValueSat}} {{$cs}} {{if $vout.Spent}}<a class="text-danger" href="{{if $vout.SpentTxID}}/tx/{{$vout.SpentTxID}}{{else}}/spending/{{$tx.Txid}}/{{$vout.N}}{{end}}" title="Spent">➡</a>{{else -}}
+                                            <span class="text-success" title="Unspent"> <b>×</b></span>
+                                            {{- end -}}
+                                            <br><span style="color:#6c757d">{{$asset.Quantity}} {{$asset.Name}}</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                        </span>
+                                    </td>
+                                </tr>
+                            {{- else -}}
+                                <tr{{if isOwnAddresses $data $vout.Addresses}} class="tx-own"{{end}}>
+                                    <td>
+                                        {{- range $a := $vout.Addresses -}}
+                                        <span class="ellipsis tx-addr">
+                                            {{- if and (ne $a $addr) $vout.IsAddress}}<a href="/address/{{$a}}">{{$a}}</a>{{else}}{{$a}}{{- end -}}
+                                        </span>
+                                        {{- else -}}
+                                        <span class="tx-addr">Unparsed address</span>
+                                        {{- end -}}
+                                        <span class="tx-amt">
+                                            {{formatAmount $vout.ValueSat}} {{$cs}} {{if $vout.Spent}}<a class="text-danger" href="{{if $vout.SpentTxID}}/tx/{{$vout.SpentTxID}}{{else}}/spending/{{$tx.Txid}}/{{$vout.N}}{{end}}" title="Spent">➡</a>{{else -}}
+                                            <span class="text-success" title="Unspent"> <b>×</b></span>
+                                            {{- end -}}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {{- end -}}
                         {{- else -}}
-                        <tr>
-                            <td>No Outputs</td>
-                        </tr>
+                            <tr>
+                                <td>No Outputs</td>
+                            </tr>
                         {{- end -}}
                     </tbody>
                 </table>

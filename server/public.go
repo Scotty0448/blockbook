@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"encoding/hex"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -444,6 +445,8 @@ func (s *PublicServer) parseTemplates() []*template.Template {
 		"setTxToTemplateData":      setTxToTemplateData,
 		"isOwnAddress":             isOwnAddress,
 		"isOwnAddresses":           isOwnAddresses,
+		"isAssetScript":            isAssetScript,
+		"getAssetData":             getAssetData,
 	}
 	var createTemplate func(filenames ...string) *template.Template
 	if s.debug {
@@ -555,6 +558,23 @@ func isOwnAddresses(td *TemplateData, addresses []string) bool {
 		return isOwnAddress(td, addresses[0])
 	}
 	return false
+}
+
+func isAssetScript(Hex string) bool {
+	script, err := hex.DecodeString(Hex)
+	if err != nil {
+		return false
+	}
+	return IsAssetScript(script)
+}
+
+func getAssetData(Hex string) AssetData {
+	script, err := hex.DecodeString(Hex)
+	if err != nil {
+		var asset_data AssetData
+		return asset_data
+	}
+	return ExtractAssetData(script)
 }
 
 func (s *PublicServer) explorerTx(w http.ResponseWriter, r *http.Request) (tpl, *TemplateData, error) {

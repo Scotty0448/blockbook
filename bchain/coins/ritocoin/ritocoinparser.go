@@ -8,6 +8,7 @@ import (
 	"github.com/trezor/blockbook/bchain"
 	"github.com/trezor/blockbook/bchain/coins/btc"
 	"github.com/trezor/blockbook/bchain/coins/utils"
+	"github.com/martinboehm/btcutil/txscript"
 )
 
 // magic numbers
@@ -41,7 +42,9 @@ type RitocoinParser struct {
 
 // NewRitocoinParser returns new RitocoinParser instance
 func NewRitocoinParser(params *chaincfg.Params, c *btc.Configuration) *RitocoinParser {
-	return &RitocoinParser{BitcoinParser: btc.NewBitcoinParser(params, c)}
+	parser := &RitocoinParser{BitcoinParser: btc.NewBitcoinParser(params, c)}
+	parser.OutputScriptToAddressesFunc = parser.outputScriptToAddresses
+	return parser
 }
 
 // GetChainParams contains network parameters
@@ -90,4 +93,26 @@ func (p *RitocoinParser) ParseBlock(b []byte) (*bchain.Block, error) {
 		},
 		Txs: txs,
 	}, nil
+}
+
+// outputScriptToAddresses converts ScriptPubKey to addresses with a flag that the addresses are searchable
+func (p *RitocoinParser) outputScriptToAddresses(script []byte) ([]string, bool, error) {
+	sc, addresses, _, err := txscript.ExtractPkScriptAddrs(script, p.Params)
+	if err != nil {
+		return nil, false, err
+	}
+	rv := make([]string, len(addresses))
+	for i, a := range addresses {
+		rv[i] = a.EncodeAddress()
+	}
+	var s bool
+	if sc == txscript.PubKeyHashTy || sc == txscript.WitnessV0PubKeyHashTy || sc == txscript.ScriptHashTy || sc == txscript.WitnessV0ScriptHashTy || sc == txscript.PubKeyHashWithAssetTy {
+		s = true
+	} else if len(rv) == 0 {
+		or := p.TryParseOPReturn(script)
+		if or != "" {
+			rv = []string{or}
+		}
+	}
+	return rv, s, nil
 }
