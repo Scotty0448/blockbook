@@ -459,7 +459,6 @@ func (s *PublicServer) parseTemplates() []*template.Template {
 		"formatAmountWithDecimals": formatAmountWithDecimals,
 		"setTxToTemplateData":      setTxToTemplateData,
 		"isOwnAddress":             isOwnAddress,
-		"isOwnAddresses":           isOwnAddresses,
 		"containsNewLines":         containsNewLines,
 		"splitOnNewLines":          splitOnNewLines,
 		"toJSON":                   toJSON,
@@ -564,14 +563,6 @@ func setTxToTemplateData(td *TemplateData, tx *api.Tx) *TemplateData {
 // isOwnAddress returns true if the address is the one that is being shown in the explorer
 func isOwnAddress(td *TemplateData, a string) bool {
 	return a == td.AddrStr
-}
-
-func containsNewLines(s string) bool {
-	return strings.Contains(s, "\n")
-}
-
-func splitOnNewLines(s string) []string {
-  return strings.Split(s, "\n")
 }
 
 func containsNewLines(s string) bool {
